@@ -211,6 +211,6 @@ generate <- function(directory = getwd()) {
   cmp <- plot.cmp(paste0(directory, "/cmp.txt"))
   lipid <- plot.lipid(paste0(directory, "/lipid.txt"))
   ggsave("cbc.pdf", cbc, height = height, width = width)
-  ggsave("cmp.pdf", cbc, height = height, width = width)
+  ggsave("cmp.pdf", cmp, height = height, width = width)
   ggsave("lipid.pdf", lipid, height = height, width = width)
 }
