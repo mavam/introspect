@@ -179,7 +179,7 @@ plot.cbc <- function(filename) {
   ggdraw() +
     draw_plot(final, 0, 0, 1, 0.9) +
     draw_label("Complete Blood Count", fontface = "bold", size = 18,
-               x = 0.5, y = 1, vjust = 2) +
+               x = 0.5, y = 1, vjust = 3) +
     draw_label("White Blood Cells", fontface = "bold",
                x = 0.05, y = 0.905, hjust = 0) +
     draw_label("Red Blood Cells", fontface = "bold",
@@ -218,7 +218,7 @@ plot.cmp <- function(filename) {
   ggdraw() +
     draw_plot(final, 0, 0, 1, 0.9) +
     draw_label("Comprehensive Metabolic Panel", fontface = "bold", size = 18,
-               x = 0.5, y = 1, vjust = 2) +
+               x = 0.5, y = 1, vjust = 3.5) +
     draw_label("Electrolytes", fontface = "bold",
                x = 0.05, y = 0.72, hjust = 0) +
     draw_label("Kidney", fontface = "bold",
