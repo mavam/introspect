@@ -241,8 +241,14 @@ generate <- function(name, plot_fun) {
            height = opts$height, width = opts$width, units = opts$unit)
   }
 }
-generate("cbc", plot.cbc)
-generate("cmp", plot.cmp)
-generate("lipid", plot.lipid)
+
+main <- function() {
+  generate("cbc", plot.cbc)
+  generate("cmp", plot.cmp)
+  generate("lipid", plot.lipid)
+}
+
+if (!interactive())
+  main()
 
 # vim: ft=R
