@@ -244,3 +244,5 @@ generate <- function(name, plot_fun) {
 generate("cbc", plot.cbc)
 generate("cmp", plot.cmp)
 generate("lipid", plot.lipid)
+
+# vim: ft=R
