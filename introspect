@@ -159,7 +159,7 @@ plot.cholesterol <- function(data) {
 
 # Plots a Complete Blood Count (CBC) with differential.
 plot.cbc <- function(filename) {
-  cbc <- read_table2(filename, progress = FALSE)
+  cbc <- suppressMessages(read_table2(filename))
   row1 <- plot_grid(plot.value(cbc, "WBC"),
                     plot.wbc.diff(cbc),
                     rel_widths = c(1, 2))
@@ -190,7 +190,7 @@ plot.cbc <- function(filename) {
 
 # Plots a Complete Metabolic Panel (CMP).
 plot.cmp <- function(filename) {
-  cmp <- read_table2(filename, progress = FALSE)
+  cmp <- suppressMessages(read_table2(filename))
   row1 <- plot_grid(plot.value(cmp, "Glucose"),
                     plot.value(cmp, "Calcium"),
                     nrow = 1)
@@ -229,7 +229,7 @@ plot.cmp <- function(filename) {
 
 # Plots the entire lipid panel
 plot.lipid <- function(filename) {
-  lipid <- read_table2(filename, progress = FALSE)
+  lipid <- suppressMessages(read_table2(filename))
   # Create rows.
   row1 <- plot_grid(plot.value(lipid, "Cholesterol"),
                     plot.cholesterol(lipid),
@@ -259,7 +259,7 @@ input <- function(x) file.path(opts$`input-dir`, paste0(x, ".txt"))
 output <- function(x) file.path(opts$`output-dir`, paste0(x, ".", opts$format))
 generate <- function(name, plot_fun) {
   if (file.exists(input(name))) {
-    message("generating ", opts$format, " for ", input(name))
+    message("Generating ", opts$format, " for ", input(name))
     if (!dir.exists(opts$`output-dir`))
       dir.create(opts$`output-dir`)
     ggsave(output(name), plot_fun(input(name)),
