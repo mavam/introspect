@@ -1,4 +1,4 @@
-#!/usr/bin/env Rscript --vanilla
+#!/usr/bin/env Rscript
 
 suppressPackageStartupMessages(library(cowplot))
 suppressPackageStartupMessages(library(dplyr))
@@ -19,8 +19,8 @@ option_list <- list(
               help = "format of the x-axis time labels [%default]"),
   make_option(c("-f", "--format"), default = "pdf",
               help = "the plot output format [%default]"),
-  make_option(c("-g", "--grey"), action = "store_true", default = FALSE,
-              help = "use grey scale instead of colors [%default]"),
+  make_option(c("-n", "--no-colors"), action = "store_true", default = FALSE,
+              help = "use grey color scale for B&W output [%default]"),
   make_option(c("-i", "--input-dir"), default = file.path(getwd(), "input"),
               help = "the path to input data [%default]"),
   make_option(c("-o", "--output-dir"), default = file.path(getwd(), "output"),
@@ -120,10 +120,12 @@ plot.value <- function(data, aspect) {
     ggplot(aes_string(x = "Date", y = quoted_aspect)) +
       geom_rect(aes(xmin = min(data$Date), xmax = max(data$Date),
                     ymin = ref_min, ymax = ref_max),
-                alpha = 0.03, fill = "forestgreen") +
+                alpha = 0.03,
+                fill = ifelse(opts$`no-color`, "grey", "forestgreen")) +
       geom_line() +
       geom_point() +
-      geom_point(data = outliers, color = "red", size = 2) +
+      geom_point(data = outliers, shape = 21,
+                 fill = ifelse(opts$`no-color`, "white", "red")) +
       scale_x_date(labels = date_format(opts$`date-format`)) +
       ylab(parse(text = ref[[3]])) +
       ggtitle(aspect) +
@@ -132,6 +134,7 @@ plot.value <- function(data, aspect) {
 
 # Plots white blood cell composition.
 plot.wbc.diff <- function(data) {
+  color_scale <- ifelse(opts$`no-color`, scale_fill_grey, scale_fill_hue)
   data %>%
     select(Date, Neutrophils, Lymphs, Monocytes, Eos, Basos) %>%
     gather(key, value, -Date) %>%
@@ -139,12 +142,14 @@ plot.wbc.diff <- function(data) {
       geom_area(position = "stack") +
       ylab("%") +
       scale_x_date(labels = date_format(opts$`date-format`)) +
+      color_scale() +
       ggtitle("WBC Differential") +
       theme_introspect
 }
 
 # Plots cholesterol as stacked area.
 plot.cholesterol <- function(data) {
+  color_scale <- ifelse(opts$`no-color`, scale_fill_grey, scale_fill_hue)
   data %>%
     select(Date, HDL, VLDL, LDL) %>%
     gather(key, value, -Date) %>%
@@ -154,6 +159,7 @@ plot.cholesterol <- function(data) {
       #geom_hline(aes(yintercept = 199), color = "red", linetype = "dashed") +
       ylab("mg/dl") +
       scale_x_date(labels = date_format(opts$`date-format`)) +
+      color_scale() +
       ggtitle("Cholesterol") +
       theme_introspect
 }
