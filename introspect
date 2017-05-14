@@ -84,6 +84,7 @@ theme_introspect <- theme_minimal() +
     text = element_text(size = 8),
     legend.text = element_text(size = 6),
     legend.title = element_blank(),
+    axis.line = element_line(size = 0.25),
     axis.text = element_text(size = 6),
     axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1, debug = FALSE),
     axis.ticks.x = element_line(size = 0.25),
