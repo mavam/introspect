@@ -75,30 +75,21 @@ reference <- list(
   Triglycerides = list(0, 149, "mg/dl")
 )
 
-# ------------------------------------------------------------------------------
-
-# Make sure plots look fine when presented next to each other on a larger page.
-theme_set(theme_minimal() +
+# The theme we use for all plots.
+theme_introspect <- theme_minimal() +
   theme(
     plot.margin = margin(0, 0, 0, 0),
     plot.title = element_text(size = 10, hjust = 0.5,
                               margin = margin(t = 5, b = 0)),
     text = element_text(size = 8),
     legend.text = element_text(size = 6),
+    legend.title = element_blank(),
     axis.text = element_text(size = 6),
     axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1, debug = FALSE),
     axis.ticks.x = element_line(size = 0.25),
     axis.title.x = element_blank(), # always a date
     axis.title.y = element_text(margin = margin())
   )
-)
-
-# Override previously set defaults.
-ggdraw_theme <- theme(
-  axis.text.x = element_blank(),
-  axis.text.y = element_blank(),
-  axis.ticks.x = element_blank()
-)
 
 # ------------------------------------------------------------------------------
 
@@ -133,9 +124,9 @@ plot.value <- function(data, aspect) {
       geom_point() +
       geom_point(data = outliers, color = "red", size = 2) +
       scale_x_date(labels = date_format(opts$`date-format`)) +
-      theme(axis.title.y = element_text(margin = margin())) +
       ylab(parse(text = ref[[3]])) +
-      ggtitle(aspect)
+      ggtitle(aspect) +
+      theme_introspect
 }
 
 # Plots white blood cell composition.
@@ -147,55 +138,8 @@ plot.wbc.diff <- function(data) {
       geom_area(position = "stack") +
       ylab("%") +
       scale_x_date(labels = date_format(opts$`date-format`)) +
-      theme(legend.title = element_blank()) +
-      theme(axis.title.y = element_text(margin = margin())) +
-      ggtitle("WBC Differential")
-}
-
-# Plots a Complete Blood Count (CBC) panel with differential.
-plot.cbc <- function(filename) {
-  cbc <- read_table2(filename, progress = FALSE)
-  height <- 0.25
-  ggdraw() +
-    draw_plot(plot.value(cbc, "WBC"), 0, 0.75, 0.33, height) +
-    draw_plot(plot.wbc.diff(cbc), 0.33, 0.75, 0.66, height) +
-    draw_plot(plot.value(cbc, "RBC"), 0, 0.5, 0.33, height) +
-    draw_plot(plot.value(cbc, "Hemoglobin"), 0.33, 0.5, 0.33, height) +
-    draw_plot(plot.value(cbc, "Hematocrit"), 0.66, 0.5, 0.33, height) +
-    draw_plot(plot.value(cbc, "MCV"), 0, 0.25, 0.25, height) +
-    draw_plot(plot.value(cbc, "MCH"), 0.25, 0.25, 0.25, height) +
-    draw_plot(plot.value(cbc, "MCHC"), 0.5, 0.25, 0.25, height) +
-    draw_plot(plot.value(cbc, "RDW"), 0.75, 0.25, 0.25, height) +
-    draw_plot(plot.value(cbc, "Platelets"), 0.1, 0, 0.8, height) +
-    ggdraw_theme
-}
-
-# Plots a Complete Metabolic Panel (CMP).
-plot.cmp <- function(filename) {
-  cmp <- read_table2(filename, progress = FALSE)
-  num_rows <- 5
-  height <- 1 / num_rows
-  y <- function(x) { (num_rows - x) / num_rows }
-  ggdraw() +
-    draw_plot(plot.value(cmp, "Glucose"), 0, y(1), 0.5, height) +
-    draw_plot(plot.value(cmp, "Calcium"), 0.5, y(1), 0.5, height) +
-    draw_plot(plot.value(cmp, "Sodium"), 0, y(2), 0.25, height) +
-    draw_plot(plot.value(cmp, "Potassium"), 0.25, y(2), 0.25, height) +
-    draw_plot(plot.value(cmp, "Chloride"), 0.5, y(2), 0.25, height) +
-    draw_plot(plot.value(cmp, "CO2"), 0.75, y(2), 0.25, height) +
-    draw_plot(plot.value(cmp, "BUN"), 0, y(3), 0.25, height) +
-    draw_plot(plot.value(cmp, "Creatinine"), 0.25, y(3), 0.25, height) +
-    draw_plot(plot.value(cmp, "BUN/Creatinine"), 0.5, y(3), 0.25, height) +
-    draw_plot(plot.value(cmp, "eGFR"), 0.75, y(3), 0.25, height) +
-    draw_plot(plot.value(cmp, "ALT"), 0, y(4), 0.25, height) +
-    draw_plot(plot.value(cmp, "AST"), 0.25, y(4), 0.25, height) +
-    draw_plot(plot.value(cmp, "ALP"), 0.5, y(4), 0.25, height) +
-    draw_plot(plot.value(cmp, "Bilirubin"), 0.75, y(4), 0.25, height) +
-    draw_plot(plot.value(cmp, "Protein"), 0, y(5), 0.25, height) +
-    draw_plot(plot.value(cmp, "Albumin"), 0.25, y(5), 0.25, height) +
-    draw_plot(plot.value(cmp, "Globulin"), 0.5, y(5), 0.25, height) +
-    draw_plot(plot.value(cmp, "A/G"), 0.75, y(5), 0.25, height) +
-    ggdraw_theme
+      ggtitle("WBC Differential") +
+      theme_introspect
 }
 
 # Plots cholesterol as stacked area.
@@ -209,23 +153,104 @@ plot.cholesterol <- function(data) {
       #geom_hline(aes(yintercept = 199), color = "red", linetype = "dashed") +
       ylab("mg/dl") +
       scale_x_date(labels = date_format(opts$`date-format`)) +
-      theme(legend.title = element_blank()) +
-      theme(axis.title.y = element_text(margin = margin())) +
-      ggtitle("Cholesterol")
+      ggtitle("Cholesterol") +
+      theme_introspect
+}
+
+# Plots a Complete Blood Count (CBC) with differential.
+plot.cbc <- function(filename) {
+  cbc <- read_table2(filename, progress = FALSE)
+  row1 <- plot_grid(plot.value(cbc, "WBC"),
+                    plot.wbc.diff(cbc),
+                    rel_widths = c(1, 2))
+  row2 <- plot_grid(plot.value(cbc, "RBC"),
+                    plot.value(cbc, "Hemoglobin"),
+                    plot.value(cbc, "Hematocrit"),
+                    nrow = 1)
+  row3 <- plot_grid(plot.value(cbc, "MCV"),
+                    plot.value(cbc, "MCH"),
+                    plot.value(cbc, "MCHC"),
+                    plot.value(cbc, "RDW"),
+                    nrow = 1)
+  row4 <- plot.value(cbc, "Platelets")
+  red <- plot_grid(row2, row3, ncol = 1)
+  final <- plot_grid(row1, red, row4, scale = 0.9, ncol = 1,
+                     rel_heights = c(1, 2, 1))
+  ggdraw() +
+    draw_plot(final, 0, 0, 1, 0.9) +
+    draw_label("Complete Blood Count", fontface = "bold", size = 18,
+               x = 0.5, y = 1, vjust = 2) +
+    draw_label("White Blood Cells", fontface = "bold",
+               x = 0.05, y = 0.905, hjust = 0) +
+    draw_label("Red Blood Cells", fontface = "bold",
+               x = 0.05, y = 0.67, hjust = 0) +
+    draw_label("Platelets", fontface = "bold",
+               x = 0.05, y = 0.23, hjust = 0)
+}
+
+# Plots a Complete Metabolic Panel (CMP).
+plot.cmp <- function(filename) {
+  cmp <- read_table2(filename, progress = FALSE)
+  row1 <- plot_grid(plot.value(cmp, "Glucose"),
+                    plot.value(cmp, "Calcium"),
+                    nrow = 1)
+  row2 <- plot_grid(plot.value(cmp, "Sodium"),
+                    plot.value(cmp, "Potassium"),
+                    plot.value(cmp, "Chloride"),
+                    plot.value(cmp, "CO2"),
+                    nrow = 1)
+  row3 <- plot_grid(plot.value(cmp, "BUN"),
+                    plot.value(cmp, "Creatinine"),
+                    plot.value(cmp, "BUN/Creatinine"),
+                    plot.value(cmp, "eGFR"),
+                    nrow = 1)
+  row4 <- plot_grid(plot.value(cmp, "ALT"),
+                    plot.value(cmp, "AST"),
+                    plot.value(cmp, "ALP"),
+                    plot.value(cmp, "Bilirubin"),
+                    plot.value(cmp, "Protein"),
+                    plot.value(cmp, "Albumin"),
+                    plot.value(cmp, "Globulin"),
+                    plot.value(cmp, "A/G"),
+                    nrow = 2, ncol = 4)
+  final <- plot_grid(row1, row2, row3, row4, scale = 0.9, ncol = 1,
+                     rel_heights = c(1, 1, 1, 2))
+  ggdraw() +
+    draw_plot(final, 0, 0, 1, 0.9) +
+    draw_label("Comprehensive Metabolic Panel", fontface = "bold", size = 18,
+               x = 0.5, y = 1, vjust = 2) +
+    draw_label("Electrolytes", fontface = "bold",
+               x = 0.05, y = 0.72, hjust = 0) +
+    draw_label("Kidney", fontface = "bold",
+               x = 0.05, y = 0.54, hjust = 0) +
+    draw_label("Liver", fontface = "bold",
+               x = 0.05, y = 0.35, hjust = 0)
 }
 
 # Plots the entire lipid panel
 plot.lipid <- function(filename) {
   lipid <- read_table2(filename, progress = FALSE)
-  height <- 0.33
+  # Create rows.
+  row1 <- plot_grid(plot.value(lipid, "Cholesterol"),
+                    plot.cholesterol(lipid),
+                    rel_widths = c(1, 2))
+  row2 <- plot_grid(plot.value(lipid, "HDL"),
+                    plot.value(lipid, "VLDL"),
+                    plot.value(lipid, "LDL"), nrow = 1)
+  row3 <- plot.value(lipid, "Triglycerides")
+  # Compose.
+  top <- plot_grid(row1, row2, ncol = 1)
+  plot_grid(row1, row2, ncol = 1)
+  bot <- row3
+  final <- plot_grid(top, bot, scale = 0.9, ncol = 1, rel_heights = c(2, 1))
   ggdraw() +
-    draw_plot(plot.value(lipid, "Cholesterol"), 0, 0.66, 0.33, height) +
-    draw_plot(plot.cholesterol(lipid), 0.33, 0.66, 0.66, height) +
-    draw_plot(plot.value(lipid, "HDL"), 0, 0.33, 0.33, height) +
-    draw_plot(plot.value(lipid, "VLDL"), 0.33, 0.33, 0.33, height) +
-    draw_plot(plot.value(lipid, "LDL"), 0.66, 0.33, 0.33, height) +
-    draw_plot(plot.value(lipid, "Triglycerides"), 0.1, 0, 0.8, height) +
-    ggdraw_theme
+    draw_plot(final, 0, 0, 1, 0.9) +
+    draw_label("Lipid Panel", fontface = "bold", size = 18,
+               x = 0.5, y = 1, vjust = 3) +
+    draw_label("Cholesterol", fontface = "bold",
+               x = 0.05, y = 0.9, hjust = 0) +
+    draw_label("Triglycerides", fontface = "bold",
+               x = 0.05, y = 0.3, hjust = 0)
 }
 
 # -- main ----------------------------------------------------------------------
