@@ -1,11 +1,14 @@
-library(cowplot)
-library(dplyr)
-library(ggplot2)
-library(readr)
-library(scales)
-library(tidyr)
+#!/usr/bin/env Rscript --vanilla
 
-# -- globals --------------------------------------------------------------------
+suppressPackageStartupMessages(library(cowplot))
+suppressPackageStartupMessages(library(dplyr))
+suppressPackageStartupMessages(library(ggplot2))
+suppressPackageStartupMessages(library(optparse))
+suppressPackageStartupMessages(library(readr))
+suppressPackageStartupMessages(library(scales))
+suppressPackageStartupMessages(library(tidyr))
+
+# -- globals -------------------------------------------------------------------
 
 # Reference interval describing normal values. The first two values represents
 # minimum and maximum, and the third value the unit.
@@ -48,6 +51,8 @@ reference <- list(
   Triglycerides = list(0, 149, "mg/dl")
 )
 
+# ------------------------------------------------------------------------------
+
 # Make sure plots look fine when presented next to each other on a larger page.
 theme_set(theme_minimal() +
   theme(
@@ -73,7 +78,7 @@ ggdraw_theme <- theme(
 
 date_display_format <- "%b %y"
 
-# -------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
 # Plots a specific lab value and highlights outliers.
 plot.value <- function(data, aspect) {
@@ -201,16 +206,41 @@ plot.lipid <- function(filename) {
     ggdraw_theme
 }
 
-# -- main -----------------------------------------------------------------------
+# -- main ----------------------------------------------------------------------
 
-generate <- function(directory = getwd()) {
-  # Scaled US letter.
-  height <- 11 * 0.9
-  width <- 8.5 * 0.9
-  cbc <- plot.cbc(paste0(directory, "/cbc.txt"))
-  cmp <- plot.cmp(paste0(directory, "/cmp.txt"))
-  lipid <- plot.lipid(paste0(directory, "/lipid.txt"))
-  ggsave("cbc.pdf", cbc, height = height, width = width)
-  ggsave("cmp.pdf", cmp, height = height, width = width)
-  ggsave("lipid.pdf", lipid, height = height, width = width)
+option_list <- list(
+  make_option(c("-b", "--bw"), action = "store_true", default = TRUE,
+              help = "generate black and white plots suitable for printing"),
+  make_option(c("-H", "--height"), type = "double", default = 11,
+              help = "height of the output plot [%default]"),
+  make_option(c("-W", "--width"), type = "double", default = 8.5,
+              help = "width of the output plot [%default]"),
+  make_option(c("-u", "--unit"), default = "in",
+              help = "the unit for width and height [%default]"),
+  make_option(c("-f", "--format"), default = "pdf",
+              help = "the plot output format [%default]"),
+  make_option(c("-i", "--input-dir"), default = file.path(getwd(), "input"),
+              help = "the path to input data [%default]"),
+  make_option(c("-o", "--output-dir"), default = file.path(getwd(), "output"),
+              help = "the path to input data [%default]"),
+  make_option(c("-h", "--help"), action = "store_true", default = F,
+              help = "display this help and exit")
+)
+
+opts <- parse_args(OptionParser(option_list = option_list,
+                                add_help_option = FALSE))
+
+input <- function(x) file.path(opts$`input-dir`, paste0(x, ".txt"))
+output <- function(x) file.path(opts$`output-dir`, paste0(x, ".", opts$format))
+generate <- function(name, plot_fun) {
+  if (file.exists(input(name))) {
+    message("generating ", opts$format, " for ", input(name))
+    if (!dir.exists(opts$`output-dir`))
+      dir.create(opts$`output-dir`)
+    ggsave(output(name), plot_fun(input(name)),
+           height = opts$height, width = opts$width, units = opts$unit)
+  }
 }
+generate("cbc", plot.cbc)
+generate("cmp", plot.cmp)
+generate("lipid", plot.lipid)
