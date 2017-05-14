@@ -10,6 +10,28 @@ suppressPackageStartupMessages(library(tidyr))
 
 # -- globals -------------------------------------------------------------------
 
+option_list <- list(
+  make_option(c("-H", "--height"), type = "double", default = 11,
+              help = "height of the output plot [%default]"),
+  make_option(c("-W", "--width"), type = "double", default = 8.5,
+              help = "width of the output plot [%default]"),
+  make_option(c("-f", "--format"), default = "pdf",
+              help = "the plot output format [%default]"),
+  make_option(c("-g", "--grey"), action = "store_true", default = FALSE,
+              help = "use grey scale instead of colors [%default]"),
+  make_option(c("-i", "--input-dir"), default = file.path(getwd(), "input"),
+              help = "the path to input data [%default]"),
+  make_option(c("-o", "--output-dir"), default = file.path(getwd(), "output"),
+              help = "the path to input data [%default]"),
+  make_option(c("-u", "--unit"), default = "in",
+              help = "the unit for width and height [%default]")
+  make_option(c("-h", "--help"), action = "store_true", default = FALSE,
+              help = "display this help and exit")
+)
+
+opts <- parse_args(OptionParser(option_list = option_list,
+                                add_help_option = FALSE))
+
 # Reference interval describing normal values. The first two values represents
 # minimum and maximum, and the third value the unit.
 # (list names must correspond to column names in data files)
@@ -207,28 +229,6 @@ plot.lipid <- function(filename) {
 }
 
 # -- main ----------------------------------------------------------------------
-
-option_list <- list(
-  make_option(c("-b", "--bw"), action = "store_true", default = TRUE,
-              help = "generate black and white plots suitable for printing"),
-  make_option(c("-H", "--height"), type = "double", default = 11,
-              help = "height of the output plot [%default]"),
-  make_option(c("-W", "--width"), type = "double", default = 8.5,
-              help = "width of the output plot [%default]"),
-  make_option(c("-u", "--unit"), default = "in",
-              help = "the unit for width and height [%default]"),
-  make_option(c("-f", "--format"), default = "pdf",
-              help = "the plot output format [%default]"),
-  make_option(c("-i", "--input-dir"), default = file.path(getwd(), "input"),
-              help = "the path to input data [%default]"),
-  make_option(c("-o", "--output-dir"), default = file.path(getwd(), "output"),
-              help = "the path to input data [%default]"),
-  make_option(c("-h", "--help"), action = "store_true", default = F,
-              help = "display this help and exit")
-)
-
-opts <- parse_args(OptionParser(option_list = option_list,
-                                add_help_option = FALSE))
 
 input <- function(x) file.path(opts$`input-dir`, paste0(x, ".txt"))
 output <- function(x) file.path(opts$`output-dir`, paste0(x, ".", opts$format))
