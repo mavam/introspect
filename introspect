@@ -15,6 +15,8 @@ option_list <- list(
               help = "height of the output plot [%default]"),
   make_option(c("-W", "--width"), type = "double", default = 8.5,
               help = "width of the output plot [%default]"),
+  make_option(c("-d", "--date-format"), default = "%b %y",
+              help = "format of the x-axis time labels [%default]"),
   make_option(c("-f", "--format"), default = "pdf",
               help = "the plot output format [%default]"),
   make_option(c("-g", "--grey"), action = "store_true", default = FALSE,
@@ -24,7 +26,7 @@ option_list <- list(
   make_option(c("-o", "--output-dir"), default = file.path(getwd(), "output"),
               help = "the path to input data [%default]"),
   make_option(c("-u", "--unit"), default = "in",
-              help = "the unit for width and height [%default]")
+              help = "the unit for width and height [%default]"),
   make_option(c("-h", "--help"), action = "store_true", default = FALSE,
               help = "display this help and exit")
 )
@@ -98,8 +100,6 @@ ggdraw_theme <- theme(
   axis.ticks.x = element_blank()
 )
 
-date_display_format <- "%b %y"
-
 # ------------------------------------------------------------------------------
 
 # Plots a specific lab value and highlights outliers.
@@ -132,7 +132,7 @@ plot.value <- function(data, aspect) {
       geom_line() +
       geom_point() +
       geom_point(data = outliers, color = "red", size = 2) +
-      scale_x_date(labels = date_format(date_display_format)) +
+      scale_x_date(labels = date_format(opts$`date-format`)) +
       theme(axis.title.y = element_text(margin = margin())) +
       ylab(parse(text = ref[[3]])) +
       ggtitle(aspect)
@@ -146,7 +146,7 @@ plot.wbc.diff <- function(data) {
     ggplot(aes(x = Date, y = value, fill = key)) +
       geom_area(position = "stack") +
       ylab("%") +
-      scale_x_date(labels = date_format(date_display_format)) +
+      scale_x_date(labels = date_format(opts$`date-format`)) +
       theme(legend.title = element_blank()) +
       theme(axis.title.y = element_text(margin = margin())) +
       ggtitle("WBC Differential")
@@ -208,7 +208,7 @@ plot.cholesterol <- function(data) {
       geom_area(position = "stack") +
       #geom_hline(aes(yintercept = 199), color = "red", linetype = "dashed") +
       ylab("mg/dl") +
-      scale_x_date(labels = date_format(date_display_format)) +
+      scale_x_date(labels = date_format(opts$`date-format`)) +
       theme(legend.title = element_blank()) +
       theme(axis.title.y = element_text(margin = margin())) +
       ggtitle("Cholesterol")
