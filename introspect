@@ -15,6 +15,8 @@ option_list <- list(
               help = "height of the output plot [%default]"),
   make_option(c("-W", "--width"), type = "double", default = 8.5,
               help = "width of the output plot [%default]"),
+  make_option(c("-D", "--dpi"), type = "integer", default = 300,
+              help = "dots per inch for output [%default]"),
   make_option(c("-d", "--date-format"), default = "%b %y",
               help = "format of the x-axis time labels [%default]"),
   make_option(c("-f", "--format"), default = "pdf",
@@ -269,7 +271,7 @@ generate <- function(name, plot_fun) {
     message("Generating ", opts$format, " for ", input(name))
     if (!dir.exists(opts$`output-dir`))
       dir.create(opts$`output-dir`)
-    ggsave(output(name), plot_fun(input(name)),
+    ggsave(output(name), plot_fun(input(name)), dpi = opts$dpi,
            height = opts$height, width = opts$width, units = opts$unit)
   }
 }
