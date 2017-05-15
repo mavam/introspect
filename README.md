@@ -42,4 +42,10 @@ The examples below represent the output from the following invocation:
 License
 =======
 
-This code ships ships with a 3-clause BSD license.
+This work is licensed under a [Attribution-NonCommercial-ShareAlike 4.0
+International License][by-nc-sa].
+
+[![Creative Commons License][by-nc-sa-img]][by-nc-sa]
+
+[by-nc-sa]: http://creativecommons.org/licenses/by-nc-sa/4.0/
+[by-nc-sa-img]: http://i.creativecommons.org/l/by-nc-sa/4.0/88x31.png
