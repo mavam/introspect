@@ -25,6 +25,8 @@ option_list <- list(
               help = "the path to input data [%default]"),
   make_option(c("-o", "--output-dir"), default = file.path(getwd(), "output"),
               help = "the path to input data [%default]"),
+  make_option(c("-s", "--scale"), type = "double", default = 1,
+              help = "scaling factor of the output plots [%default]"),
   make_option(c("-u", "--unit"), default = "in",
               help = "the unit for width and height [%default]"),
   make_option(c("-h", "--help"), action = "store_true", default = FALSE,
@@ -78,18 +80,18 @@ reference <- list(
 # The theme we use for all plots.
 theme_introspect <- theme_minimal() +
   theme(
+    text = element_text(size = rel(5)),
     plot.margin = margin(0, 0, 0, 0),
-    plot.title = element_text(size = 10, hjust = 0.5,
+    plot.title = element_text(size = rel(2), hjust = 0.5,
                               margin = margin(t = 5, b = 0)),
-    text = element_text(size = 8),
-    legend.text = element_text(size = 6),
+    legend.text = element_text(size = rel(0.9)),
     legend.title = element_blank(),
     axis.line = element_line(size = 0.25),
-    axis.text = element_text(size = 6),
+    axis.text = element_text(size = rel(0.5)),
     axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1, debug = FALSE),
     axis.ticks.x = element_line(size = 0.25),
     axis.title.x = element_blank(), # always a date
-    axis.title.y = element_text(margin = margin())
+    axis.title.y = element_text(size = rel(1.5), margin = margin())
   )
 
 # ------------------------------------------------------------------------------
@@ -269,7 +271,7 @@ generate <- function(name, plot_fun) {
     message("Generating ", opts$format, " for ", input(name))
     if (!dir.exists(opts$`output-dir`))
       dir.create(opts$`output-dir`)
-    ggsave(output(name), plot_fun(input(name)),
+    ggsave(output(name), plot_fun(input(name)), scale = opts$scale,
            height = opts$height, width = opts$width, units = opts$unit)
   }
 }
