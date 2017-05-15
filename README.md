@@ -15,7 +15,7 @@ format. Currently, there exists 3 types of data:
 3. [Lipid Panel](https://en.wikipedia.org/wiki/Lipid_profile)
 
 Each requires a specific input format. The [examples][examples] directory
-contains sample files for each format.
+contains artificial sample files for each format.
 
 After having populated your data files in the `input` directory, you can
 now generate the plots:
@@ -27,6 +27,17 @@ existsed.
 
 See `./introspect -h` for more detailed customization options, such as changing
 the input/output directories, file format, and more.
+
+Examples
+=======
+
+The examples below represent the output from the following invocation:
+
+    ./introspect -i examples/input -o examples/output -f png
+
+![CBC](examples/output/cbc.png)
+![CMP](examples/output/cmp.png)
+![Lipid](examples/output/lipid.png)
 
 License
 =======

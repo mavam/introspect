@@ -1,4 +1,3 @@
 .DS_Store
 *.sw?
-input
-output
+examples
