@@ -74,6 +74,7 @@ reference <- list(
   HDL = list(39, NA, "mg/dl"),
   VLDL = list(5, 40, "mg/dl"),
   LDL = list(0, 99, "mg/dl"),
+  `LDL/HDL` = list(0, 3.5, ""),
   Triglycerides = list(0, 149, "mg/dl")
 )
 
@@ -245,7 +246,8 @@ plot.lipid <- function(filename) {
                     rel_widths = c(1, 2))
   row2 <- plot_grid(plot.value(lipid, "HDL"),
                     plot.value(lipid, "VLDL"),
-                    plot.value(lipid, "LDL"), nrow = 1)
+                    plot.value(lipid, "LDL"),
+                    plot.value(lipid, "LDL/HDL"), nrow = 1)
   row3 <- plot.value(lipid, "Triglycerides")
   # Compose.
   top <- plot_grid(row1, row2, ncol = 1)
