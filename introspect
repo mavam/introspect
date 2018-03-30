@@ -23,10 +23,10 @@ option_list <- list(
               help = "the plot output format [%default]"),
   make_option(c("-n", "--no-colors"), action = "store_true", default = FALSE,
               help = "use grey color scale for B&W output [%default]"),
-  make_option(c("-i", "--input-dir"), default = file.path(getwd(), "input"),
+  make_option(c("-i", "--input"), default = "-",
               help = "the path to input data [%default]"),
-  make_option(c("-o", "--output-dir"), default = file.path(getwd(), "output"),
-              help = "the path to input data [%default]"),
+  make_option(c("-o", "--output"), default = file.path(getwd(), "output"),
+              help = "the path to output data [%default]"),
   make_option(c("-u", "--unit"), default = "in",
               help = "the unit for width and height [%default]"),
   make_option(c("-h", "--help"), action = "store_true", default = FALSE,
@@ -99,15 +99,23 @@ theme_introspect <- theme_minimal() +
 
 # Plots a specific lab value and highlights outliers.
 plot.value <- function(data, aspect) {
+  # Locate reference value.
   ref <- reference[[aspect]]
   if (is.null(ref))
     stop("missing reference data")
-  # Figure out whether we have a one-sided or two-sided reference interval.
+  # Transpose data.
+  xs <- data %>%
+    filter(key == aspect) %>%
+    spread(key, value) %>%
+    drop_na_(aspect)
+  # Compute the values outside reference range. This requires first figuring
+  # out whether we have a one-sided or two-sided reference interval. Then we
+  # filter our input data accordingly.
   filt_expr <- NULL
-  ref_min <- min(data[[aspect]], na.rm = TRUE)
-  ref_max <- max(data[[aspect]], na.rm = TRUE)
-  #filt_expr <- paste(aspect, '<', ref[[1]], '|', aspect, '>', ref[[2]])
   quoted_aspect = paste0('`', aspect, '`')
+  ref_min <- min(xs$value, na.rm = TRUE)
+  ref_max <- max(xs$value, na.rm = TRUE)
+  #filt_expr <- paste(aspect, '<', ref[[1]], '|', aspect, '>', ref[[2]])
   if (!is.na(ref[[1]])) {
     filt_expr <- c(paste(quoted_aspect, '<', ref[[1]]))
     ref_min <- ref[[1]]
@@ -117,11 +125,11 @@ plot.value <- function(data, aspect) {
     ref_max <- ref[[2]]
   }
   filt_expr <- do.call(paste, c(as.list(filt_expr), sep = " | "))
-  outliers <- data %>% filter_(filt_expr)
-  data %>%
-    drop_na_(aspect) %>%
+  outliers <- xs %>% filter_(filt_expr)
+  # Compose the plot.
+  xs %>%
     ggplot(aes_string(x = "Date", y = quoted_aspect)) +
-      geom_rect(aes(xmin = min(data$Date), xmax = max(data$Date),
+      geom_rect(aes(xmin = min(xs$Date), xmax = max(xs$Date),
                     ymin = ref_min, ymax = ref_max),
                 alpha = 0.03,
                 fill = ifelse(opts$`no-color`, "grey", "forestgreen")) +
@@ -138,9 +146,9 @@ plot.value <- function(data, aspect) {
 # Plots white blood cell composition.
 plot.wbc.diff <- function(data) {
   color_scale <- ifelse(opts$`no-color`, scale_fill_grey, scale_fill_hue)
+  cols <- c("Neutrophils", "Lymphs", "Monocytes", "Eos", "Basos")
   data %>%
-    select(Date, Neutrophils, Lymphs, Monocytes, Eos, Basos) %>%
-    gather(key, value, -Date) %>%
+    filter(key %in% cols) %>%
     ggplot(aes(x = Date, y = value, fill = key)) +
       geom_area(position = "stack") +
       ylab("%") +
@@ -154,8 +162,7 @@ plot.wbc.diff <- function(data) {
 plot.cholesterol <- function(data) {
   color_scale <- ifelse(opts$`no-color`, scale_fill_grey, scale_fill_hue)
   data %>%
-    select(Date, HDL, VLDL, LDL) %>%
-    gather(key, value, -Date) %>%
+    filter(key %in% c("HDL", "VLDL", "LDL")) %>%
     ggplot(aes(x = Date, y = value,
                fill =factor(key, levels = c("HDL", "VLDL", "LDL")))) +
       geom_area(position = "stack") +
@@ -168,21 +175,20 @@ plot.cholesterol <- function(data) {
 }
 
 # Plots a Complete Blood Count (CBC) with differential.
-plot.cbc <- function(filename) {
-  cbc <- suppressMessages(read_table2(filename))
-  row1 <- plot_grid(plot.value(cbc, "WBC"),
-                    plot.wbc.diff(cbc),
+plot.cbc <- function(data) {
+  row1 <- plot_grid(plot.value(data, "WBC"),
+                    plot.wbc.diff(data),
                     rel_widths = c(1, 2))
-  row2 <- plot_grid(plot.value(cbc, "RBC"),
-                    plot.value(cbc, "Hemoglobin"),
-                    plot.value(cbc, "Hematocrit"),
+  row2 <- plot_grid(plot.value(data, "RBC"),
+                    plot.value(data, "Hemoglobin"),
+                    plot.value(data, "Hematocrit"),
                     nrow = 1)
-  row3 <- plot_grid(plot.value(cbc, "MCV"),
-                    plot.value(cbc, "MCH"),
-                    plot.value(cbc, "MCHC"),
-                    plot.value(cbc, "RDW"),
+  row3 <- plot_grid(plot.value(data, "MCV"),
+                    plot.value(data, "MCH"),
+                    plot.value(data, "MCHC"),
+                    plot.value(data, "RDW"),
                     nrow = 1)
-  row4 <- plot.value(cbc, "Platelets")
+  row4 <- plot.value(data, "Platelets")
   red <- plot_grid(row2, row3, ncol = 1)
   final <- plot_grid(row1, red, row4, scale = 0.9, ncol = 1,
                      rel_heights = c(1, 2, 1))
@@ -199,29 +205,28 @@ plot.cbc <- function(filename) {
 }
 
 # Plots a Complete Metabolic Panel (CMP).
-plot.cmp <- function(filename) {
-  cmp <- suppressMessages(read_table2(filename))
-  row1 <- plot_grid(plot.value(cmp, "Glucose"),
-                    plot.value(cmp, "Calcium"),
+plot.cmp <- function(data) {
+  row1 <- plot_grid(plot.value(data, "Glucose"),
+                    plot.value(data, "Calcium"),
                     nrow = 1)
-  row2 <- plot_grid(plot.value(cmp, "Sodium"),
-                    plot.value(cmp, "Potassium"),
-                    plot.value(cmp, "Chloride"),
-                    plot.value(cmp, "CO2"),
+  row2 <- plot_grid(plot.value(data, "Sodium"),
+                    plot.value(data, "Potassium"),
+                    plot.value(data, "Chloride"),
+                    plot.value(data, "CO2"),
                     nrow = 1)
-  row3 <- plot_grid(plot.value(cmp, "BUN"),
-                    plot.value(cmp, "Creatinine"),
-                    plot.value(cmp, "BUN/Creatinine"),
-                    plot.value(cmp, "eGFR"),
+  row3 <- plot_grid(plot.value(data, "BUN"),
+                    plot.value(data, "Creatinine"),
+                    plot.value(data, "BUN/Creatinine"),
+                    plot.value(data, "eGFR"),
                     nrow = 1)
-  row4 <- plot_grid(plot.value(cmp, "ALT"),
-                    plot.value(cmp, "AST"),
-                    plot.value(cmp, "ALP"),
-                    plot.value(cmp, "Bilirubin"),
-                    plot.value(cmp, "Protein"),
-                    plot.value(cmp, "Albumin"),
-                    plot.value(cmp, "Globulin"),
-                    plot.value(cmp, "A/G"),
+  row4 <- plot_grid(plot.value(data, "ALT"),
+                    plot.value(data, "AST"),
+                    plot.value(data, "ALP"),
+                    plot.value(data, "Bilirubin"),
+                    plot.value(data, "Protein"),
+                    plot.value(data, "Albumin"),
+                    plot.value(data, "Globulin"),
+                    plot.value(data, "A/G"),
                     nrow = 2, ncol = 4)
   final <- plot_grid(row1, row2, row3, row4, scale = 0.9, ncol = 1,
                      rel_heights = c(1, 1, 1, 2))
@@ -238,17 +243,16 @@ plot.cmp <- function(filename) {
 }
 
 # Plots the entire lipid panel
-plot.lipid <- function(filename) {
-  lipid <- suppressMessages(read_table2(filename))
+plot.lipid <- function(data) {
   # Create rows.
-  row1 <- plot_grid(plot.value(lipid, "Cholesterol"),
-                    plot.cholesterol(lipid),
+  row1 <- plot_grid(plot.value(data, "Cholesterol"),
+                    plot.cholesterol(data),
                     rel_widths = c(1, 2))
-  row2 <- plot_grid(plot.value(lipid, "HDL"),
-                    plot.value(lipid, "VLDL"),
-                    plot.value(lipid, "LDL"),
-                    plot.value(lipid, "LDL/HDL"), nrow = 1)
-  row3 <- plot.value(lipid, "Triglycerides")
+  row2 <- plot_grid(plot.value(data, "HDL"),
+                    plot.value(data, "VLDL"),
+                    plot.value(data, "LDL"),
+                    plot.value(data, "LDL/HDL"), nrow = 1)
+  row3 <- plot.value(data, "Triglycerides")
   # Compose.
   top <- plot_grid(row1, row2, ncol = 1)
   plot_grid(row1, row2, ncol = 1)
@@ -266,22 +270,25 @@ plot.lipid <- function(filename) {
 
 # -- main ----------------------------------------------------------------------
 
-input <- function(x) file.path(opts$`input-dir`, paste0(x, ".txt"))
-output <- function(x) file.path(opts$`output-dir`, paste0(x, ".", opts$format))
-generate <- function(name, plot_fun) {
-  if (file.exists(input(name))) {
-    message("Generating ", opts$format, " for ", input(name))
-    if (!dir.exists(opts$`output-dir`))
-      dir.create(opts$`output-dir`)
-    ggsave(output(name), plot_fun(input(name)), dpi = opts$dpi,
-           height = opts$height, width = opts$width, units = opts$unit)
-  }
+store <- function(name, plot) {
+  message("Generating ", opts$format, " for ", name)
+  output <- file.path(opts$output, paste0(name, ".", opts$format))
+  ggsave(output, plot, dpi = opts$dpi, height = opts$height,
+         width = opts$width, units = opts$unit)
 }
 
 main <- function() {
-  generate("cbc", plot.cbc)
-  generate("cmp", plot.cmp)
-  generate("lipid", plot.lipid)
+  if (!dir.exists(opts$output))
+    dir.create(opts$output)
+  if (opts$input == "-")
+    opts$input = file("stdin")
+  else if (!file.exists(opts$input))
+    stop("no such file: ", opts$input)
+  col_names <- c("Date", "key", "value")
+  data <- suppressMessages(read_table2(opts$input, col_names = col_names))
+  store("cbc", plot.cbc(data))
+  store("cmp", plot.cmp(data))
+  store("lipid", plot.lipid(data))
 }
 
 if (!interactive())
