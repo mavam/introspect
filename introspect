@@ -278,12 +278,12 @@ store <- function(name, plot) {
 }
 
 main <- function() {
-  if (!dir.exists(opts$output))
-    dir.create(opts$output)
   if (opts$input == "-")
     opts$input = file("stdin")
   else if (!file.exists(opts$input))
     stop("no such file: ", opts$input)
+  if (!dir.exists(opts$output))
+    dir.create(opts$output)
   col_names <- c("Date", "key", "value")
   data <- suppressMessages(read_table2(opts$input, col_names = col_names))
   store("cbc", plot.cbc(data))
