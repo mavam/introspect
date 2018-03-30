@@ -146,7 +146,7 @@ plot.value <- function(data, aspect) {
 # Plots white blood cell composition.
 plot.wbc.diff <- function(data) {
   color_scale <- ifelse(opts$`no-color`, scale_fill_grey, scale_fill_hue)
-  cols <- c("Neutrophils", "Lymphs", "Monocytes", "Eos", "Basos")
+  cols <- c("Neutrophils", "Lymphs", "Monocytes", "Eos", "Baso")
   data %>%
     filter(key %in% cols) %>%
     ggplot(aes(x = Date, y = value, fill = key)) +
